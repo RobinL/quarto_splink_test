@@ -1,3 +1,4 @@
 jupyterlab==3.4.2
 splink==3.6.0
 vl-convert-python==0.4.0
+ipykernel==6.21.1
