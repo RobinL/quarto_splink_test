@@ -1,0 +1,60 @@
+---
+title: "Hello, Quarto"
+format: html
+---
+
+## Markdown
+
+Markdown is an easy to read and write text format:
+
+- It's _plain text_ so works well with version control
+- It can be **rendered** into HTML, PDF, and more
+- Learn more at: <https://quarto.org/docs/authoring/>
+
+## Code Cell
+
+Here is a Python code cell:
+
+```{python}
+import os
+os.cpu_count()
+```
+
+```{python}
+import pandas as pd
+import vl_convert as vlc
+from splink.duckdb.duckdb_linker import DuckDBLinker
+from splink.duckdb.duckdb_comparison_library import (
+    exact_match,
+    levenshtein_at_thresholds,
+)
+path = "https://raw.githubusercontent.com/moj-analytical-services/splink/master/tests/datasets/fake_1000_from_splink_demos.csv"
+df = pd.read_csv(path)
+
+settings = {
+    "link_type": "dedupe_only",
+    "blocking_rules_to_generate_predictions": [
+        "l.first_name = r.first_name",
+        "l.surname = r.surname",
+    ],
+    "comparisons": [
+        levenshtein_at_thresholds("first_name", 2),
+        exact_match("surname"),
+        exact_match("dob"),
+        exact_match("city", term_frequency_adjustments=True),
+        exact_match("email"),
+    ],
+    "retain_intermediate_calculation_columns": True,
+}
+
+
+linker = DuckDBLinker(df, settings)
+
+chart = linker.match_weights_chart()
+
+png_data = vlc.vegalite_to_png(vl_spec=chart.spec, scale=4)
+with open("vl_convert_chart3.png", "wb") as f:
+    f.write(png_data)
+```
+
+![My VL chart](vl_convert_chart3.png)
